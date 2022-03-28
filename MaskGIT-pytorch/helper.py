@@ -8,6 +8,8 @@ class ResidualBlock(nn.Module):
         super(ResidualBlock, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
+        # think of it as a stack of this basic block
+        # Conv2D -> GroupNorm -> Swish
         self.block = nn.Sequential(
             GroupNorm(in_channels),
             Swish(),
@@ -16,7 +18,12 @@ class ResidualBlock(nn.Module):
             Swish(),
             nn.Conv2d(out_channels, out_channels, 3, 1, 1)
         )
+        # For residual network, in_channel and out_channel must be the same
+        # otherwise, we could not add them up together without projection!
         if in_channels != out_channels:
+            # projection to align input and output dimension
+            # manually convert input to output dimensions
+            # CHECKME: Is this the right way to go?
             self.channel_up = nn.Conv2d(in_channels, out_channels, 1, 1, 0)
 
     def forward(self, x):
@@ -36,6 +43,9 @@ class UpSampleBlock(nn.Module):
         return self.conv(x)
 
 
+# Downsampling block that reduce resolution of images by half
+# CHECKME: Why not maxpooling?
+# Used in here: https://github.com/CompVis/taming-transformers/blob/master/taming/modules/diffusionmodules/model.py
 class DownSampleBlock(nn.Module):
     def __init__(self, channels):
         super(DownSampleBlock, self).__init__()
@@ -47,6 +57,8 @@ class DownSampleBlock(nn.Module):
         return self.conv(x)
 
 
+# Non-local block that captures long-range dependencies vai non-local operations
+# Reference: https://paperswithcode.com/paper/non-local-neural-networks
 class NonLocalBlock(nn.Module):
     def __init__(self, in_channels):
         super().__init__()
@@ -87,12 +99,16 @@ class NonLocalBlock(nn.Module):
 class GroupNorm(nn.Module):
     def __init__(self, in_channels):
         super(GroupNorm, self).__init__()
+        # Perform Group Normalization, which is a variety of Batch Normalization
+        # affine=True => mean and variance are learnable parameters
         self.gn = nn.GroupNorm(num_groups=32, num_channels=in_channels, eps=1e-6, affine=True)
 
     def forward(self, x):
         return self.gn(x)
 
 
+# this is the new activation function invented by Google
+# f(x) = x sigmoid(x)
 class Swish(nn.Module):
     def forward(self, x):
         return x * torch.sigmoid(x)

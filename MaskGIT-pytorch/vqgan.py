@@ -11,6 +11,7 @@ class VQGAN(nn.Module):
         self.encoder = Encoder(args).to(device=args.device)
         self.decoder = Decoder(args).to(device=args.device)
         self.codebook = Codebook(args).to(device=args.device)
+        # why these two layers?
         self.quant_conv = nn.Conv2d(args.latent_dim, args.latent_dim, 1).to(device=args.device)
         self.post_quant_conv = nn.Conv2d(args.latent_dim, args.latent_dim, 1).to(device=args.device)
 

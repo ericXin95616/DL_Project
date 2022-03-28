@@ -5,10 +5,11 @@ from helper import ResidualBlock, NonLocalBlock, DownSampleBlock, GroupNorm, Swi
 class Encoder(nn.Module):
     def __init__(self, args):
         super(Encoder, self).__init__()
+        # Convolutional layer channels
         channels = [128, 128, 128, 256, 256, 512]
         attn_resolutions = [16]
         num_res_blocks = 2
-        layers = [nn.Conv2d(args.image_channels, channels[0], 3, 1, 1)]
+        layers = [nn.Conv2d(args.image_channels, channels[0], kernel_size=3, stride=1, padding=1)]
         resolution = 256
         for i in range(len(channels)-1):
             in_channels = channels[i]
@@ -18,8 +19,11 @@ class Encoder(nn.Module):
                 in_channels = out_channels
                 if resolution in attn_resolutions:
                     layers.append(NonLocalBlock(in_channels))
+            # divide exactly 4 times
             if i != len(channels) - 2:
+                # Downsampling using Conv2D
                 layers.append(DownSampleBlock(channels[i+1]))
+                # floor division
                 resolution //= 2
         layers.append(ResidualBlock(channels[-1], channels[-1]))
         layers.append(NonLocalBlock(channels[-1]))
