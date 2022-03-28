@@ -19,14 +19,14 @@ class TrainVQGAN:
         self.perceptual_loss = LPIPS().eval().to(device=args.device)
         self.opt_vq, self.opt_disc = self.configure_optimizers(args)
 
-        self.prepare_training()
+        self.prepare_training(args)
 
         self.train(args)
 
     @staticmethod
-    def prepare_training():
-        os.makedirs("results", exist_ok=True)
-        os.makedirs("checkpoints", exist_ok=True)
+    def prepare_training(args):
+        os.makedirs(args.result_dir, exist_ok=True)
+        os.makedirs(args.ckpt_dir, exist_ok=True)
 
     def configure_optimizers(self, args):
         lr = args.learning_rate
@@ -105,6 +105,8 @@ if __name__ == '__main__':
     parser.add_argument('--disc-factor', type=float, default=1., help='')
     parser.add_argument('--l2-loss-factor', type=float, default=1., help='Weighting factor for reconstruction loss.')
     parser.add_argument('--perceptual-loss-factor', type=float, default=1., help='Weighting factor for perceptual loss.')
+    parser.add_argument('--result-dir', type=str, default='/result', help='Result Directory')
+    parser.add_argument('--ckpt-dir', type=str, default='/ckpt', help='Checkpoint Directory')
 
     args = parser.parse_args()
     # args.dataset_path = "/content/drive/MyDrive/MaskGIT/Landscape"
