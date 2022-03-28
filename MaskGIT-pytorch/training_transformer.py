@@ -31,9 +31,9 @@ class TrainTransformer:
                     pbar.set_postfix(Transformer_Loss=np.round(loss.cpu().detach().numpy().item(), 4))
                     pbar.update(0)
             log, sampled_imgs = self.model.log_images(imgs[0][None])
-            vutils.save_image(sampled_imgs, os.path.join("results", f"{epoch}.jpg"), nrow=4)
+            vutils.save_image(sampled_imgs, os.path.join(args.result_dir, f"{epoch}.jpg"), nrow=4)
             plot_images(log)
-            torch.save(self.model.state_dict(), os.path.join("checkpoints", f"transformer_epoch_{epoch}.pt"))
+            torch.save(self.model.state_dict(), os.path.join(args.ckpt_dir, f"transformer_epoch_{epoch}.pt"))
 
     def configure_optimizers(self):
         decay, no_decay = set(), set()
@@ -86,6 +86,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--pkeep', type=float, default=0.5, help='Percentage for how much latent codes to keep.')
     parser.add_argument('--sos-token', type=int, default=0, help='Start of Sentence token.')
+    parser.add_argument('--result-dir', type=str, default='/result', help='Result Directory')
+    parser.add_argument('--ckpt-dir', type=str, default='/ckpt', help='Checkpoint Directory')
 
     args = parser.parse_args()
     # args.dataset_path = r"C:\Users\dome\datasets\flowers"

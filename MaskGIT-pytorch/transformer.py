@@ -25,6 +25,7 @@ class VQGANTransformer(nn.Module):
 
     @torch.no_grad()
     def encode_to_z(self, x):
+        # encode the image to the latent space
         quant_z, indices, _ = self.vqgan.encode(x)
         indices = indices.view(quant_z.shape[0], -1)
         return quant_z, indices
@@ -32,6 +33,8 @@ class VQGANTransformer(nn.Module):
     def forward(self, x):
         _, z_indices = self.encode_to_z(x)
 
+        # generate masked token
+        # CHECKME: MVTM here. Should check this part carefully as it greatly influence quality of image generation!
         r = np.random.uniform()
         mask = torch.bernoulli(r * torch.ones(z_indices.shape, device=z_indices.device))
         mask = mask.round().to(dtype=torch.int64)

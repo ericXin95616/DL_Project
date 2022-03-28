@@ -7,6 +7,8 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         # Convolutional layer channels
         channels = [128, 128, 128, 256, 256, 512]
+        # each visual word is a block of 16x16
+        # latent-dim is 256
         attn_resolutions = [16]
         num_res_blocks = 2
         layers = [nn.Conv2d(args.image_channels, channels[0], kernel_size=3, stride=1, padding=1)]
@@ -17,6 +19,7 @@ class Encoder(nn.Module):
             for j in range(num_res_blocks):
                 layers.append(ResidualBlock(in_channels, out_channels))
                 in_channels = out_channels
+                # build long range dependence over long-distance visual words
                 if resolution in attn_resolutions:
                     layers.append(NonLocalBlock(in_channels))
             # divide exactly 4 times
