@@ -79,12 +79,12 @@ class TrainVQGAN:
                     if i % 10 == 0:
                         with torch.no_grad():
                             both = torch.cat((imgs[:4], decoded_images.add(1).mul(0.5)[:4]))
-                            vutils.save_image(both, os.path.join("results", f"{epoch}_{i}.jpg"), nrow=4)
+                            vutils.save_image(both, os.path.join(args.result_dir, f"{epoch}_{i}.jpg"), nrow=4)
 
                     pbar.set_postfix(VQ_Loss=np.round(loss_vq.cpu().detach().numpy().item(), 5),
                                      GAN_Loss=np.round(loss_gan.cpu().detach().numpy().item(), 3))
                     pbar.update(0)
-                torch.save(self.vqgan.state_dict(), os.path.join("checkpoints", f"vqgan_epoch_{epoch}.pt"))
+                torch.save(self.vqgan.state_dict(), os.path.join(args.ckpt_dir, f"vqgan_epoch_{epoch}.pt"))
 
 
 if __name__ == '__main__':
