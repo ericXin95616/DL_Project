@@ -73,7 +73,7 @@ class VQGANTransformer(nn.Module):
         else:
             indices = torch.hstack((condition, torch.zeros((condition.shape[0], N-condition.shape[1]), device="cuda", dtype=torch.int)))
 
-        gamma = self.gamma(mode)
+        gamma = self.gamma_func(mode)
 
         for t in range(T+1):
             # define a mask for the indices which have already been sampled
