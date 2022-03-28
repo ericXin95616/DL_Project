@@ -48,6 +48,16 @@ class VQGANTransformer(nn.Module):
         return logits, target
 
     def top_k_logits(self, logits, k):
+        """
+        :param logits: The probability of visual tokens that sampled at each location
+        :param k: The number of tokens we want to keep
+        :return: mask matrix that indicates which visual tokens will be masked (value = 0)
+        """
+        if 0 == k:
+            # masked all
+            masked_all = logits.clone()
+            masked_all[:] = 0
+            return masked_all
         v, ix = torch.topk(logits, k)
         out = logits.clone()
         out[out < v[..., [-1]]] = 0
@@ -79,7 +89,12 @@ class VQGANTransformer(nn.Module):
             # define a mask for the indices which have already been sampled
             unmasked = torch.clamp(indices, 0, 1).type(torch.int)
 
-            n = np.ceil(gamma(t/T) * N)
+            # n is the number of visual tokens we want to mask
+            # t = 0, n = N; t=T, n = 0 (mask all at the beginning, unmask all at the end)
+            n = int(np.ceil(gamma(t/T) * N))
+            # do this to avoid rounding error
+            if T == t:
+                n = 0
             logits = self.transformer(indices)
 
             logits = logits / temperature
@@ -99,9 +114,9 @@ class VQGANTransformer(nn.Module):
             probability_indices = torch.where(unmasked == 1, torch.ones_like(unmasked, dtype=torch.float), probability_indices)
 
             # create a mask where 1 indicates indices which we will keep and 0 will be resampled due to low confidence
-            mask = torch.ceil(self.top_k_logits(probability_indices, int(N-n))).type(torch.int)
+            mask = torch.ceil(self.top_k_logits(probability_indices, N-n)).type(torch.int)
 
-            # print(f"Number of non_zero elements in masked: {torch.count_nonzero(mask)}. Expected: {(N-n)*shape[0]}")
+            print(f"Number of non_zero elements in masked: {torch.count_nonzero(mask)}. Expected: {(N-n)*shape[0]}")
 
             sample_indices = sample_indices.reshape(shape[0], shape[1])
 
@@ -123,6 +138,7 @@ class VQGANTransformer(nn.Module):
         _, z_indices = self.encode_to_z(x)
 
         # create a "half" sample
+        # CHECKME: why half_index_sample?
         z_start_indices = z_indices[:, :z_indices.shape[1]//2]
         half_index_sample = self.sample(condition=z_start_indices, mode=mode)
         x_sample = self.indices_to_image(half_index_sample)
