@@ -32,7 +32,7 @@ class TrainTransformer:
                     pbar.update(0)
             log, sampled_imgs = self.model.log_images(imgs[0][None])
             vutils.save_image(sampled_imgs, os.path.join(args.result_dir, f"{epoch}.jpg"), nrow=4)
-            plot_images(log)
+            # plot_images(log)
             torch.save(self.model.state_dict(), os.path.join(args.ckpt_dir, f"transformer_epoch_{epoch}.pt"))
 
     def configure_optimizers(self):
