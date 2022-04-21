@@ -5,6 +5,8 @@ dataset
 dataset/*
 results
 results/*
+taming-transformers
+taming-transformers/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
